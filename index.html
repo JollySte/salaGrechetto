@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Prove con ThreeJs</title>
+		<style>
+			body { margin: 0 }			
+			select {
+			width: 100%;
+			padding: 6px 20px;
+			margin: 8px 0;
+			display: inline-block;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			box-sizing: border-box;
+			font-size: 90%;
+			}
+			h1, h2, h4 {
+				text-align: center;
+			}
+			.checked {
+ 			 color: rgb(80, 176, 255);
+			}
+		</style>
+	</head>
+	<body>
+	
+		<div id="container" style="position: relative;" width="2300" height="936">
+			<h1>Sala del Grechetto</h1>
+			<canvas id="scena" style="position: absolute; top: 146px; border: 2px solid rebeccapurple" width="1460" height="766">
+			</canvas>
+			<div id="metadata" style="position: absolute; top: 145px; right: 6px; background-color: white; border: 2px solid grey; max-width: 440px;">
+				<h2>Sala del Grechetto</h2>
+				<h4>cerca informazioni</h4>
+				<select id="nomeC" name="Nome" onfocus='this.size=9;' onblur='this.size=1;' onchange='this.size=1; this.blur();'>
+					<option value="" style="color: #ccc;">Nome</option>
+					<!--riempito via javascript-->
+				  </select>
+				<select id="nomeS" name="NomeScientifico" onfocus='this.size=9;' onblur='this.size=1;' onchange='this.size=1; this.blur();'>
+					<option value="" style="color: #ccc;">Nome scientifico</option>
+					<!--riempito via javascript-->
+				  </select>
+				<select id="classeRazza" name="Classe">
+					<option value="" style="color: #ccc;">Classe</option>
+					<option value="Aves">Aves</option>
+					<option value="Crustacea">Crustacea</option>
+					<option value="Mammalia">Mammalia</option>
+					<option value="Mollusca">Mollusca</option>
+					<option value="Osteicta">Osteicta</option>
+					<option value="Reptilia">Reptilia</option>
+				  </select>
+				<hr/>
+				<div id="areaGeo"></div>
+				<hr/>
+				<div id="descrizione" style="text-align:left; padding-top: 10px; padding-bottom: 20px;"></div>
+				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+				<div id="qualita"></div>
+				<p id="esemplari"></p>
+				<div id="altri" style="padding: 10px;"></div>
+			</div>
+			
+		</div>
+		<script src="./node_modules/three/build/three.js"></script>
+		<script src="./node_modules/three/examples/js/loaders/OBJLoader.js" type="module"></script>
+		<script src="./node_modules/three/src/loaders/TextureLoader.js" type="module"></script>
+		<script src="./node_modules/three/examples/js/controls/OrbitControls.js"></script>
+		<script src="./node_modules/three/examples/js/controls/PointerLockControls.js"></script>
+		<script src="./node_modules/@tweenjs/tween.js/dist/tween.umd.js"></script>
+		<script src="./preparaScena.js" type="module"></script>
+	</body>
+</html>
