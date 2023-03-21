@@ -1,14 +1,18 @@
 
 			//import * as THREE from 'three';
 			//import * as TWEEN from './node_modules/@tweenjs/tween.js';
+
+			//const { sRGBEncoding } = require("three");
+
 			
 			//import * as THREE from './node_modules/three/build/three.module.js'; 
 			//import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 
-			let request = new XMLHttpRequest();
-			request.open("GET", './animali.json', false);
-			request.send(null);
-			let metadati = JSON.parse(request.responseText);
+			//let request = new XMLHttpRequest();
+			//request.open("GET", './animali.json', false);
+			//request.send(null);
+			//let metadati = JSON.parse(request.responseText);
+			const metadati = await (await fetch('./animali.json')).json();
 			const nomiC = [...new Set(metadati.map(item => item.nomeComune))]; 
 			nomiC.sort();
 			//console.log(nomiC);
@@ -17,14 +21,15 @@
 			//console.log(nomiS);
 
 			const containerScena = document.getElementById('scena');
-			const divContainer = document.getElementById('container');
 			const scene = new THREE.Scene();
 			const loader = new THREE.OBJLoader();
 			loader.setPath('./sala/');
-	//		const imageLoader = new THREE.ImageBitmapLoader();
 			const textureLoader = new THREE.TextureLoader();
 			const camera = new THREE.PerspectiveCamera( 50, 1460 / 766, 0.5, 9000 );
-			camera.position.set(-150,0,1500);
+			camera.position.set(-239, -187, 5000);
+			//let dire = new THREE.Vector3(-1000, 2000, -520);
+			//camera.lookAt(-1000, 0, -550);
+			camera.updateProjectionMatrix();
 			const light1 = new THREE.PointLight( 0xffffff, 1, 8000 ); 
 			const light2 = new THREE.PointLight( 0xffffff, 1, 8000 ); 
 			light1.position.set(-217, 1400, 900);
@@ -56,6 +61,7 @@
 
 			window.addEventListener( 'resize', onWindowResize );
 			
+			THREE.ColorManagement.enabled = true;
 
 			const zPaint = -520;
 			const parete1 = new THREE.Group();
@@ -185,6 +191,9 @@
 			wall0305.position.y = 265;
 			//wall0305.position.z = zPaint;
 			parete1.add(wall0305);
+
+			
+
 
 			const texture0401 =  await textureLoader.loadAsync('./sala/04_01.jpg');
     		const material0401 = new THREE.MeshBasicMaterial({ map: texture0401 });
@@ -360,25 +369,46 @@
 			scene.add(parete3);
 			scene.add(parete4);
 			const orbit = new THREE.OrbitControls(camera, renderer.domElement);
+			orbit.minDistance = 30;
+			orbit.maxDistance = 1000;
+			orbit.target.set(-100, 0, 1400);
+			//orbit.enablePan = false;
+			orbit.update();
+			//orbit.enableDamping = true;
 			/*const controls = new THREE.PointerLockControls(camera, containerScena);
 			document.body.addEventListener( 'click', function () {
 				//lock mouse on screen
 				controls.lock();
 			}, false );
 			*/
-
-			const spheregeo = new THREE.SphereGeometry(14,25,14);
-       		const sphereMaterial = new THREE.MeshBasicMaterial({color: "red"});
-        	const sphere = new THREE.Mesh(spheregeo, sphereMaterial);
-        	sphere.position.set(parete4.position.x, 600, 2000);
-			sphere.userData.draggable = true;
-        	scene.add(sphere);
 			
+			const spheregeo = new THREE.SphereGeometry(32,48,32);
+       		const sphereMaterial = new THREE.MeshBasicMaterial({color: "red", transparent: true, opacity: 0.4});
+        	const sphere1 = new THREE.Mesh(spheregeo, sphereMaterial);
+        	sphere1.position.set(-100, 0, 350);
+			sphere1.userData.draggable = true;
+			sphere1.userData.selected = false;
+        	scene.add(sphere1);
+			const sphere2 = sphere1.clone();
+			sphere2.material = new THREE.MeshBasicMaterial({color: "red", transparent: true, opacity: 0.4});
+        	sphere2.position.set(-100, 0, 2400);
+			sphere2.userData.draggable = true;
+			sphere2.userData.selected = false;
+        	scene.add(sphere2);
+		
+			const sphereCenter = sphere1.clone();
+        	sphereCenter.position.set(-100, 0, 1400);
+			sphereCenter.material = new THREE.MeshBasicMaterial({color: "red", transparent: true, opacity: 0.0});
+			sphereCenter.userData.draggable = true;
+			sphereCenter.userData.selected = false;
+        	scene.add(sphereCenter);
+
+			const sfereView = [sphere1, sphereCenter, sphere2];
 		
 			//document.addEventListener('mousemove', onMouseMove);
 			
 
-			// raycasting per tracciare il movimento del mouse ed evidenziare gli oggetti
+			// raycasting per tracciare il movimento del mouse 
 			const pointer = new THREE.Vector2();
 			const clickPos = new THREE.Vector2();
 			const raycaster = new THREE.Raycaster();
@@ -396,24 +426,33 @@
 			
 
 			function onMouseClick(event){
-				if(sfera){
-					sfera = null;
-					return;
-				}
 				let box = renderer.domElement.getBoundingClientRect();
 				clickPos.x = (event.offsetX / renderer.domElement.width) * 2 - 1;
 				clickPos.y = -(event.offsetY / renderer.domElement.height) * 2 + 1;
 
 				raycaster.setFromCamera(clickPos, camera);
 				const intersects = raycaster.intersectObjects(scene.children);
-				if(intersects.length > 0 && intersects[0].object.userData.draggable){
-					
+				console.log("info: ", intersects[0]);
+
+				// get pixel coordinates on texture
+				const textureCanvas = document.getElementById('0305');
+				
+
+
+				sfera = intersects[0].object;
+				if(intersects.length > 0 && sfera.userData.draggable){
+					for(let i = 0; i<sfereView.length; i++){
+						sfereView[i].material.opacity = 0.4;
+					}
 					sfera = intersects[0].object;
+					sfera.userData.selected = true;
+					sfera.material.opacity = 0;
 					console.log("camera: ");
 					console.log(camera.position.x, camera.position.y, camera.position.z);
-					console.log("lookAt: ");
+					console.log("sferapos: ");
 					console.log(sfera.position.x, sfera.position.y, sfera.position.z);
-					console.log("vector: ");
+					orbit.target.set(sfera.position.x, sfera.position.y, sfera.position.z);
+					orbit.update();
 					
 					//zoom(camPosition, camDirection);
 				}
@@ -424,10 +463,10 @@
 			window.addEventListener('click', onMouseClick);
 				
 			function zoom(posizione, direzione){
-				TWEEN.removeAll();
-				
+				//TWEEN.removeAll();
+				let vec = new THREE.Vector3(posizione[0], posizione[1], posizione[2]);
 				new TWEEN.Tween(camera.position)
-					.to({x: posizione[0], y: posizione[1], z: posizione[2]}, 2000)
+					.to(vec, 2000)
 					.onUpdate(() => {
 						camera.lookAt(direzione);
 					})
@@ -437,6 +476,53 @@
 			}
 
 
+			const texture0305b = textureLoader.load( './sala/03_05.png', ( texture ) => {
+			
+				const raycaster = new THREE.Raycaster();
+				const mouse = new THREE.Vector2();
+				const canvas = document.createElement( 'canvas' );
+				canvas.id = '0305';
+				canvas.width = texture.image.width/3;
+				canvas.height = texture.image.height/3;
+				
+				const context = canvas.getContext( '2d' );
+				context.drawImage( texture.image, 0, 0, texture.image.width/3, texture.image.height/3);
+				
+				const texData = context.getImageData( 0, 0, canvas.width, canvas.height );
+
+				containerScena.addEventListener( 'click', (event) => {
+
+					// check intersections with imported model
+			
+					mouse.x =  (event.offsetX / renderer.domElement.width) * 2 - 1;
+					mouse.y =  -(event.offsetY / renderer.domElement.height) * 2 + 1;
+
+					raycaster.setFromCamera( mouse, camera );
+			
+					const intersects = raycaster.intersectObjects( scene.children );
+			
+					// if there is any intersection, continue
+			
+					if ( intersects.length && intersects[0].uv ) {
+
+						const uv = intersects[0].uv;			
+
+						var tx = Math.min(uv.x * texData.width  | 0, texData.width - 1);
+						var ty = Math.min(uv.y * texData.height | 0, texData.height - 1);
+						ty = texData.height - ty;
+						var offset = (ty * texData.width + tx) * 4;
+						var r = texData.data[offset + 0];
+						var g = texData.data[offset + 1];
+						var b = texData.data[offset + 2];
+						var a = texData.data[offset + 3];
+
+						console.log("color: ", r, g, b, a );
+				}
+			})
+			
+			} );
+
+			/*
 			function spostaSfera(){
 				if(sfera != null){
 					raycaster.setFromCamera(pointer, camera);
@@ -444,12 +530,13 @@
 					if(intersects.length > 0 && intersects[0].object.userData.draggable){
 						for (let o of intersects){
 							
-							sfera.position.z = o.point.z;
+							sfera.position.x = o.point.x;
 							sfera.position.y = o.point.y;
 						}
 					}
 				}
 			}
+			*/
 			
 			let trovati = [];
 			let currentObj = null;
@@ -624,7 +711,7 @@
 			
 			function animate() {
 				requestAnimationFrame( animate );
-				spostaSfera();
+				//spostaSfera();
 				TWEEN.update();
 				renderer.render( scene, camera );
 				//controls.update();				
