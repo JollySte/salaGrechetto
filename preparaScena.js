@@ -19,6 +19,7 @@
 			const nomiS = [...new Set(metadati.map(item => item.nomeScientifico))]; 
 			nomiS.sort();
 			//console.log(nomiS);
+			
 
 			const containerScena = document.getElementById('scena');
 			const scene = new THREE.Scene();
@@ -463,16 +464,20 @@
 			window.addEventListener('click', onMouseClick);
 				
 			function zoom(posizione, direzione){
-				//TWEEN.removeAll();
+				TWEEN.removeAll();
+				orbit.enabled = false;
 				let vec = new THREE.Vector3(posizione[0], posizione[1], posizione[2]);
 				new TWEEN.Tween(camera.position)
 					.to(vec, 2000)
 					.onUpdate(() => {
 						camera.lookAt(direzione);
+					}).onComplete(() => {
+					
+						orbit.enabled = true;
 					})
 					.start();
 
-				
+					
 			}
 
 
@@ -517,6 +522,9 @@
 						var a = texData.data[offset + 3];
 
 						console.log("color: ", r, g, b, a );
+						let animale = trovaByColor(r, g, b);
+						riempiCampi(animale);
+						console.log("animale: ", animale);
 				}
 			})
 			
@@ -602,12 +610,65 @@
 
 			}
 
-			function trovaFromNomeS(){
+			function trovaByColor(r, g, b){
+					for(let i = 0; i < metadati.length; i++){
+						let a = metadati[i];
+						if(a.rgb && a.rgb[0] == r && a.rgb[1] == g && a.rgb[2] == b)
+							return a;
+					}
+					
+				}
 
-			}
+			function riempiCampi(animale){
+					
+					if(currentObj != animale){
+					{
+						resetStars();
+						resetButtons();
+	
+						//console.log(trovati);
+	
+						currentObj = animale;
+						insertNomeC(currentObj.nomeComune);
+						insertNomeS(currentObj.nomeScientifico);
+	
+						if(currentObj.areaGeo !== undefined){
+							document.getElementById('areaGeo').innerHTML = currentObj.areaGeo;
+						}else{
+							document.getElementById('areaGeo').innerHTML = "";
+						}
+	
+						document.getElementById('classeRazza').value = currentObj.classe;
+	
+						if(currentObj.note !== undefined){
+							document.getElementById('descrizione').innerHTML = currentObj.note;
+						}else{
+							document.getElementById('descrizione').innerHTML = "";
+						}	
+						insertStars(currentObj.affidabilita);
+						document.getElementById('esemplari').innerHTML = "Esemplari di " + currentObj.nomeComune + " nella sala:";
+						let dir = currentObj.lookAt;
+						let vec = new THREE.Vector3(dir[0], dir[1], dir[2]);
+						zoom(currentObj.camera, vec);
+						let altri = document.getElementById('altri');
+						for(let i = 0; i < trovati.length; i++){
+							let x = document.createElement('button');
+							x.id = i;
+							x.innerHTML = i+1;
+							x.addEventListener('click', function(){
+								currentObj = trovati[i];
+							} );
+							altri.appendChild(x);
+						}
+					}
+				}
+	
+				}
+
+			
 
 			document.getElementById('nomeC').addEventListener('change', trovaFromNomeC);
-			document.getElementById('nomeS').addEventListener('change', trovaFromNomeS);
+			//document.getElementById('nomeS').addEventListener('change', trovaFromNomeS);
 
 
 			function insertButtons(){
@@ -634,6 +695,14 @@
 					document.getElementById('nomeS').value = currentObj.nomeScientifico;
 				}else{
 					document.getElementById('nomeS').value = "";
+				}
+			}
+
+			function insertNomeC(nome){
+				if(nome !== undefined){
+					document.getElementById('nomeC').value = currentObj.nomeComune;
+				}else{
+					document.getElementById('nomeC').value = "";
 				}
 			}
 
