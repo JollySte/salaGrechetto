@@ -695,8 +695,8 @@
 				//	console.log("sferapos: ");
 				//	console.log(sfera.position.x, sfera.position.y, sfera.position.z);
 					posTarget = sfera.position;
-					orbit.target.set(sfera.position.x, sfera.position.y, sfera.position.z);
-					orbit.update();
+					//orbit.target.set(sfera.position.x, sfera.position.y, sfera.position.z);
+					//orbit.update();
 					//orbit.current.target.lerp
 					//zoom(camPosition, camDirection);
 				}
